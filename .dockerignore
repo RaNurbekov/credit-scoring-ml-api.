@@ -1,0 +1,10 @@
+# Игнорируем всё лишнее
+__pycache__/
+notebooks/
+.ipynb_checkpoints/
+
+# Игнорируем ВСЕ датасеты
+data/raw/*
+
+# НО разрешаем скопировать только один нужный файл для схемы
+!data/raw/application_train.csv
