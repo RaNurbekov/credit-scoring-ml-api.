@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
     
     # ИНЖЕНЕРНЫЙ ТРЮК: Читаем 1 строку обучающей выборки, чтобы запомнить схему
     print("⏳ Изучаю схему данных...")
-    df_schema = pd.read_csv('data/raw/application_train.csv', nrows=1)
+    df_schema = pd.read_csv('models/schema.csv')
     # Запоминаем, какие колонки были текстовыми
     schema_info["cat_cols"] = df_schema.select_dtypes(include=['object']).columns.tolist()
     # Запоминаем правильный порядок колонок из самой модели!

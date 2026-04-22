@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. Копируем сам код API, папку с моделью и папку data
 COPY api.py .
 COPY models/ models/
-COPY data/ data/
+
 
 # 6. Открываем порт 8000
 EXPOSE 8000
