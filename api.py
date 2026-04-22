@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
 import pandas as pd
+from src.database import init_db, log_request
+
 
 ml_models = {}
 schema_info = {} # 🧠 Память сервера для типов колонок
@@ -19,6 +21,10 @@ async def lifespan(app: FastAPI):
     schema_info["cat_cols"] = df_schema.select_dtypes(include=['object']).columns.tolist()
     # Запоминаем правильный порядок колонок из самой модели!
     schema_info["all_features"] = ml_models["lgbm"].feature_name_
+
+     # --- НОВАЯ СТРОЧКА ---
+    init_db()
+    
     
     print("✅ Модель и схема данных успешно загружены!")
     yield
@@ -48,8 +54,13 @@ def predict(data: ClientData):
     
     # 4. Бизнес-логика (отказ при риске > 15%)
     decision = "Одобрить" if prob < 0.15 else "Отказать"
+
+    # --- НОВАЯ СТРОЧКА: Сохраняем в БД ---
+    log_request(data.features, float(prob), decision)
     
     return {
         "probability_of_default": round(float(prob), 4),
         "decision": decision
     }
+
+
