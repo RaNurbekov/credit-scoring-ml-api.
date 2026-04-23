@@ -13,7 +13,7 @@ client_json_str = df_test.iloc[0].to_json()
 client_dict = json.loads(client_json_str)
 
 print("2. Отправляем запрос на наш работающий сервер (API)...")
-url = "http://127.0.0.1:8000/predict"
+url = "https://credit-scoring-ml-api.onrender.com/predict"
 payload = {"features": client_dict}
 
 # Делаем POST запрос
