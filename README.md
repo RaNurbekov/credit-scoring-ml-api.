@@ -1,4 +1,5 @@
 # 🏦 Credit Scoring ML API
+Live API: https://credit-scoring-ml-api.onrender.com/predict
 
 Микросервис машинного обучения для оценки кредитного риска (вероятности дефолта) клиентов. Проект демонстрирует полный цикл ML Engineering: от обучения модели до деплоя REST API в Docker-контейнере.
 
