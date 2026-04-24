@@ -37,6 +37,12 @@ st.sidebar.subheader("Скрытые рейтинги (БКИ)")
 ext_2 = st.sidebar.slider("Внешний рейтинг 2", 0.0, 1.0, 0.6)
 ext_3 = st.sidebar.slider("Внешний рейтинг 3", 0.0, 1.0, 0.6)
 
+# --- НОВЫЙ БЛОК: ИСТОРИЯ ПРОСРОЧЕК ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("История платежей")
+max_past_due = st.sidebar.slider("Максимальная просрочка (дней)", 0, 365, 0)
+total_payments = st.sidebar.slider("Всего выплачено кредитов", 0, 50, 10)
+
 # 
 # В датасете возраст и стаж считаются в днях со знаком минус (особенность Home Credit)
 # 4. Обновляем скелет новыми данными из ползунков
@@ -48,6 +54,12 @@ base_features['AMT_CREDIT'] = float(credit_amt)
 # --- НОВЫЕ СТРОЧКИ ---
 base_features['EXT_SOURCE_2'] = float(ext_2)
 base_features['EXT_SOURCE_3'] = float(ext_3)
+
+# --- НОВЫЕ СТРОЧКИ ---
+base_features['MAX_PAST_DUE_DAYS'] = float(max_past_due)
+# Для простоты считаем среднюю просрочку равной максимальной (если она есть)
+base_features['MEAN_PAST_DUE_DAYS'] = float(max_past_due) / 2 if max_past_due > 0 else 0.0
+base_features['TOTAL_PAYMENTS'] = float(total_payments)
 
 
 # 5. Кнопка отправки в облако
