@@ -73,17 +73,29 @@ if st.button("🚀 Рассчитать вероятность дефолта", 
                 result = response.json()
                 prob = result["probability_of_default"]
                 decision = result["decision"]
+                explanation = result["explanation"]
                 
                 st.markdown("---")
                 st.subheader("Вердикт модели:")
                 
-                # Красивый вывод результата
                 if decision == "Одобрить":
                     st.success(f"✅ **{decision}** (Риск: {prob:.2%})")
-                    st.balloons() # Магия Streamlit - шарики при успехе!
+                    st.balloons()
                 else:
                     st.error(f"❌ **{decision}** (Риск: {prob:.2%})")
+                    
+                # --- НОВЫЙ БЛОК: Вывод SHAP объяснений ---
+                st.markdown("### 🔍 Почему модель так решила?")
+                st.write("Топ-5 факторов, повлиявших на решение по этому клиенту:")
+                
+                for item in explanation:
+                    feat = item["feature"]
+                    impact = item["impact"]
+                    
+                    # Если impact > 0, значит фича ПОВЫСИЛА риск дефолта
+                    if impact > 0:
+                        st.warning(f"⬆️ **{feat}** повышает риск (Вклад: +{impact:.2f})")
+                    else:
+                        st.info(f"⬇️ **{feat}** снижает риск (Вклад: {impact:.2f})")
             else:
                 st.error(f"Ошибка сервера: {response.status_code}")
-        except Exception as e:
-            st.error(f"Не удалось подключиться к API: {e}")
