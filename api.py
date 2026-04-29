@@ -1,29 +1,35 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pydantic import BaseModel
-import joblib
 import pandas as pd
-import shap
-from src.database import init_db, log_request
+import mlflow # <-- НОВЫЙ ИМПОРТ
 
 ml_models = {}
 schema_info = {}
 
+# ВСТАВЬ СЮДА СВОЙ СКОПИРОВАННЫЙ RUN ID!
+RUN_ID = "a2111785183b4863ac88988d6f55965b"
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("⏳ Загружаю модель и SHAP Explainer...")
-    ml_models["lgbm"] = joblib.load('models/lgbm_baseline.pkl')
+    print("⏳ Подключаюсь к реестру MLflow...")
+    # Говорим API, где лежит наша база данных с моделями
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
     
-    # --- МАГИЯ SHAP ---
-    # Создаем "объяснителя", который выучит логику нашей LightGBM модели
-    ml_models["explainer"] = shap.TreeExplainer(ml_models["lgbm"])
+    print(f"⏳ Скачиваю модель из запуска: {RUN_ID}...")
+    # Формируем специальный путь MLflow
+    model_uri = f"runs:/{RUN_ID}/model"
     
-    df_schema = pd.read_csv('models/schema.csv')
+    # Магия! Скачиваем модель прямо из базы MLflow в оперативную память!
+    ml_models["lgbm"] = mlflow.lightgbm.load_model(model_uri)
+    
+    print("⏳ Изучаю схему данных...")
+    df_schema = pd.read_csv('data/raw/application_train.csv', nrows=1)
     schema_info["cat_cols"] = df_schema.select_dtypes(include=['object']).columns.tolist()
+    # LightGBM из MLflow немного иначе хранит имена фичей, достаем их безопасно
     schema_info["all_features"] = ml_models["lgbm"].feature_name_
     
-    init_db()
-    print("✅ Сервер полностью готов!")
+    print("✅ Сервер готов! Модель загружена из MLflow.")
     yield
     ml_models.clear()
 
