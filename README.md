@@ -1,35 +1,41 @@
-# 🏦 Credit Scoring ML API (with MLOps)
+# 🏦 Credit Scoring ML API (with Advanced MLOps)
 
-Микросервис машинного обучения для оценки кредитного риска (вероятности дефолта) клиентов. Проект демонстрирует полный цикл ML Engineering: от обучения модели до трекинга экспериментов и динамического деплоя REST API в Docker-контейнере.
+![CI Pipeline](https://github.com/RaNurbekov/credit-scoring-ml-api/actions/workflows/ci-pipeline.yml/badge.svg)
+
+Микросервис машинного обучения для оценки кредитного риска. Проект демонстрирует **Advanced MLOps**: от трекинга экспериментов и динамического деплоя до мониторинга дрейфа данных (Data Drift) и автоматического CI/CD пайплайна.
 
 ## 🛠 Стек технологий
-* **Machine Learning:** Python, Pandas, Scikit-Learn, LightGBM
+* **Machine Learning:** LightGBM, Pandas, Scikit-Learn
 * **Backend:** FastAPI, Uvicorn, Pydantic
-* **DevOps & MLOps:** MLflow (Model Registry & Experiment Tracking), Docker, Git
-* **Explainable AI:** SHAP (Интерпретация решений модели)
+* **MLOps & DevOps:** MLflow, Docker, Git
+* **CI/CD & Testing:** GitHub Actions, Pytest
+* **Model Monitoring:** Evidently AI
+* **Explainable AI:** SHAP
 
-## ⚙️ Архитектура проекта
-1. **Experiment Tracking (`src/train.py`):** Обучение модели на данных [Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk). Интегрирован **MLflow** с функцией `autolog()` для автоматического сохранения гиперпараметров, метрик (ROC-AUC) и артефактов в локальную БД SQLite.
-2. **Dynamic Loading API (`api.py`):** REST API на FastAPI. Модель не "зашита" в код жестко — при старте сервер динамически скачивает нужную версию модели напрямую из базы данных MLflow по `RUN_ID`.
-3. **Data Validation:** Реализован жесткий контроль схемы данных для защиты от дрейфа типов (Data Drift).
-4. **Containerization (`Dockerfile`):** Упаковка сервиса в Docker-контейнер для изоляции окружения.
+## ⚙️ Архитектура и MLOps процессы
+1. **Experiment Tracking (`src/train.py`):** Интегрирован **MLflow** (`autolog`) для сохранения метрик и артефактов в локальную БД SQLite.
+2. **Dynamic Loading API (`api.py`):** Сервер скачивает веса модели "на лету" из базы MLflow по `RUN_ID`, избавляя от жесткой привязки файлов.
+3. **Continuous Integration (CI):** При каждом `git push` сервер **GitHub Actions** поднимает чистое окружение Linux и прогоняет Unit-тесты (`pytest`) для проверки бизнес-логики банка.
+4. **Data Drift Monitoring (`src/monitor_drift.py`):** Скрипт на базе **Evidently AI**, генерирующий интерактивный HTML-дашборд. Позволяет вовремя отследить деградацию модели из-за инфляции или изменения профиля клиентов.
 
-## 🚀 Как запустить проект локально
+## 🚀 Как запустить проект
 
-### 1. Подготовка данных
-Скачайте датасет[Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) с Kaggle и поместите `application_train.csv` в папку `data/raw/`.
-
-### 2. Обучение и Трекинг (MLflow)
-Запустите скрипт обучения. MLflow автоматически запишет результаты в `mlflow.db`:
+### 1. Обучение и MLflow
 ```bash
 python src/train.py
-
-
-## Для просмотра дашборда экспериментов запустите сервер:
-
 mlflow server --host 127.0.0.1 --port 5000 --workers 1 --backend-store-uri sqlite:///mlflow.db
 
-## 3. Запуск API
- #Скопируйте RUN_ID лучшей модели из дашборда MLflow, вставьте его в api.py и запустите сервер:
-
+2. Запуск API
+Скопируйте RUN_ID из дашборда MLflow, вставьте его в api.py и запустите сервер:
 uvicorn api:app --reload
+
+3. Мониторинг дрейфа данных (Evidently AI)
+Сгенерируйте HTML-отчет, анализирующий сдвиги в данных:
+
+python src/monitor_drift.py
+
+4. Запуск Unit-тестов локально
+python -m pytest -p no:langsmith tests/
+
+*(⚠️ **ВАЖНО:** Во второй строчке кода, где написан бейдж `![CI Pipeline]...`, обязательно замени слово `ТВОЙ_НИК` на свой логин в GitHub, чтобы бейджик загорелся зеленым!)*
+
